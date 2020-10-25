@@ -1,17 +1,18 @@
 <?php
 
 require_once('/opt/kwynn/kwutils.php');
+require_once('getActual.php');
 
 class GitGetAct extends dao_generic {
     
     const db = 'repos';
-    const quotaMinutes = 5;
+    const quotaMinutes = 15;
     
     public function __construct()  {
 	parent::__construct(self::db);
 	$this->lcoll = $this->client->selectCollection(self::db, 'latest');
 	
-	$this->get10();
+	$this->regGet();
 	$this->p10();
 	$this->p20();
 	$this->save();
@@ -36,7 +37,6 @@ class GitGetAct extends dao_generic {
     private function p20() { 
 	if (!isset($this->thea)) return;
 	usort($this->thea, [$this, 'sort']);    
-	
     }
        
     private function p10() {
@@ -46,10 +46,7 @@ class GitGetAct extends dao_generic {
 	$fs = ['updated_at', 'html_url', 'description' ];
 	
 	$r = [];
-	
-	$j = $this->htj;
-	$ws = json_decode($j, 1);
-	foreach($ws as $w) {
+	foreach($this->rawa as $w) {
 	    $t = [];
 	    foreach($fs as $f) $t[$f] = $w[$f];
 	    $t['ts'] = strtotime($w['updated_at']);
@@ -57,11 +54,6 @@ class GitGetAct extends dao_generic {
 	}
 	
 	$this->thea = $r; unset($this->htj);
-    }
-    
-    private function get10() {
-        $j = $this->regGet();
-	$this->htj = $j;
     }
     
     private function regGet() {
@@ -73,17 +65,10 @@ class GitGetAct extends dao_generic {
 	    return; 
 	}
 	
-	return $this->getActual();
-	/*
+	$this->source = 'curl';	
+	$this->rawa = github_api_user_repo_get::get();
 	$this->asof = time();
-	$this->source = 'curl';
-	 * 
-	 * 	$this->rawa = $a;
-	 */
-	
     }
-    
-
 }
 
 if (didCLICallMe(__FILE__)) new GitGetAct();
