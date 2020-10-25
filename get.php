@@ -5,8 +5,7 @@ require_once('/opt/kwynn/kwutils.php');
 class GitGetAct extends dao_generic {
     
     const db = 'repos';
-    const quotaMinutes = 20;
-    
+    const quotaMinutes = 5;
     
     public function __construct()  {
 	parent::__construct(self::db);
@@ -27,6 +26,7 @@ class GitGetAct extends dao_generic {
 	$d['cnt'] = count($this->thea);
 	$d['asof'] = $this->asof;
 	$d['asr' ] = date('r', $d['asof']);
+	$d['source'] = $this->source;
 	$this->lcoll->upsert($q, $d);
 	$this->suma = $d;
     }
@@ -60,39 +60,30 @@ class GitGetAct extends dao_generic {
     }
     
     private function get10() {
-	
-	$testf = '/tmp/git';
-	
-	if (isAWS() || 1 || !file_exists($testf)) {
-	    $j = $this->regGet();
-	    file_put_contents($testf, $j);
-	} else {
-	    $j = file_get_contents($testf);
-	    $this->asof = filemtime($testf);
-	    $this->source = 'temp_file';
-	}
-	
+        $j = $this->regGet();
 	$this->htj = $j;
     }
     
     private function regGet() {
 	$since = time() - self::quotaMinutes * 60;
 	$r = $this->lcoll->findOne(['asof' => ['$gte' => $since]]);
-	if ($r) $this->suma = $r;
-	return;
-    }
-    
-    private function getActual() {
-	$ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'https://api.github.com/users/kwynncom/repos');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-	$h = ['User-Agent: curl/PHP'];
-	curl_setopt($ch, CURLOPT_HTTPHEADER, $h);
-	$j = curl_exec($ch);
+	if ($r) { 
+	    $this->suma = $r; 	
+	    $this->source = 'dbcache';
+	    return; 
+	}
+	
+	return $this->getActual();
+	/*
 	$this->asof = time();
 	$this->source = 'curl';
-	return $j;	
+	 * 
+	 * 	$this->rawa = $a;
+	 */
+	
     }
+    
+
 }
 
 if (didCLICallMe(__FILE__)) new GitGetAct();
