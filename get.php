@@ -11,6 +11,7 @@ class GitGetAct extends dao_generic {
     public function __construct()  {
 	parent::__construct(self::db);
 	$this->lcoll = $this->client->selectCollection(self::db, 'latest');
+	$this->scoll = $this->client->selectCollection(self::db, 'snapshot');
 	
 	$this->regGet();
 	$this->p10();
@@ -23,12 +24,15 @@ class GitGetAct extends dao_generic {
 	if (isset($this->suma)) return;
 	$q = ['latest' => true];
 	$a = $this->thea[0];
-	$d = array_merge($a, $q);
+	$d = [];
 	$d['cnt'] = count($this->thea);
 	$d['asof'] = $this->asof;
 	$d['asr' ] = date('r', $d['asof']);
 	$d['source'] = $this->source;
-	$this->lcoll->upsert($q, $d);
+	$la = array_merge($a, $q, $d);
+	$this->lcoll->upsert($q, $la);
+	$sa = array_merge($d, ['rs' => $this->thea]);
+	$this->scoll->insertOne($sa);
 	$this->suma = $d;
     }
     
@@ -43,7 +47,7 @@ class GitGetAct extends dao_generic {
 	
 	if (isset($this->suma)) return;
 	
-	$fs = ['updated_at', 'html_url', 'description' ];
+	$fs = ['updated_at', 'html_url', 'description', 'id', 'node_id', 'created_at' ];
 	
 	$r = [];
 	foreach($this->rawa as $w) {
