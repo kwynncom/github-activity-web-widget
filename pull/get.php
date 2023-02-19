@@ -39,6 +39,17 @@ class GitGetAct extends dao_generic_3 {
 		file_put_contents('/tmp/gwh', $s, FILE_APPEND);
 		if (iscli()) echo($s);
 	}
+	
+	private function popTime(int | string $t, array &$a) {
+		if (is_integer($t)) {
+			$a[self::uaf . '_U'] = $t;
+			$a[self::uaf . '_r' ] = date('r', $t);
+			return;
+		}
+		
+		$a[self::uaf . '_U'] = strtotime($t);
+		$a[self::uaf . '_r'] = $t;
+	}
 
     private function p10() {
 
@@ -46,8 +57,11 @@ class GitGetAct extends dao_generic_3 {
 		$r = [];
 		foreach($this->rawa as $w) {
 			$t = [];
-			foreach(self::gfs as $f) $t[$f] = $w[$f];
-			$t[self::uaf . '_U'] = strtotime($w[self::uaf]);
+			foreach(self::gfs as $f) {
+				// $t[self::uaf . '_U'] = strtotime($w[self::uaf]);
+				if ($f === self::uaf) $this->popTime($w[$f], $t);
+				else $t[$f] = $w[$f];
+			}
 			$r[] = $t;
 		}
 
