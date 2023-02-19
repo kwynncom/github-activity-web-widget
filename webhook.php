@@ -35,6 +35,8 @@ class rcvGitWebHook {
 		kwas(hash_hmac('sha256', $s, $secf) === $secr, 'bad data web hook 0203');
 		$this->logf('3');
 		$this->logf('hmac pass');
+		GitGetAct::putOne($s);
+		$this->logf('after DB put');		
 	}
 	
 	private function logf(string $s) {

@@ -19,23 +19,33 @@ class GitGetAct extends dao_generic_3 {
 	
 	private function pull() {
 		$this->regGet();
-		$this->p10();
 		$this->save();		
 	}
 	
 	public static function putOne(string $s) {
-		$a = json_decode($s); 	kwas($a, 'bad format webhook - 0142');
+		$a = json_decode($s, true); 	kwas($a, 'bad format webhook - 0142');
 		$o = new self();
 		$o->putOneI($a['repository']);
 		
 	}
 	
-	private function save() { foreach($this->thea as $r) $this->putOneI($r);	}
+	private function save() { foreach($this->rawa as $r) $this->putOneI($r);	}
 	
 	public function putOneI(array $r) { 
-		$r['_id'] = basename($r['html_url']);
-		$dbr = $this->rcoll->upsert(['_id' => $r['_id']], $r);
-		$s = 'modified count: ' . $dbr->getModifiedCount() . " $r[_id] \n";
+		
+		$t = [];
+		foreach(self::gfs as $f) {
+			// $t[self::uaf . '_U'] = strtotime($w[self::uaf]);
+			if ($f === self::uaf) $this->popTime($r[$f], $t);
+			else $t[$f] = $r[$f];
+		}
+
+		$t['_id'] = basename($r['html_url']); unset($r);
+
+		
+		
+		$dbr = $this->rcoll->upsert(['_id' => $t['_id']], $t);
+		$s = 'modified count: ' . $dbr->getModifiedCount() . " $t[_id] \n";
 		file_put_contents('/tmp/gwh', $s, FILE_APPEND);
 		if (iscli()) echo($s);
 	}
@@ -51,23 +61,6 @@ class GitGetAct extends dao_generic_3 {
 		$a[self::uaf . '_r'] = $t;
 	}
 
-    private function p10() {
-
-
-		$r = [];
-		foreach($this->rawa as $w) {
-			$t = [];
-			foreach(self::gfs as $f) {
-				// $t[self::uaf . '_U'] = strtotime($w[self::uaf]);
-				if ($f === self::uaf) $this->popTime($w[$f], $t);
-				else $t[$f] = $w[$f];
-			}
-			$r[] = $t;
-		}
-
-		$this->thea = $r;
-    }
-    
     private function regGet() {
 		$this->rawa = github_api_user_repo_get::get();
     }
