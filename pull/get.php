@@ -3,12 +3,26 @@
 require_once('/opt/kwynn/kwutils.php');
 require_once('getActual.php');
 
-class GitGetAct extends dao_generic_3 {
+class GitGet extends dao_generic_3 {
     
     const dbname = 'repos';
 	
 	const uaf =   'pushed_at';
 	const gfs =  [self::uaf, 'html_url', /* 'description' , 'id', 'node_id', 'created_at' */];
+	
+	public static function get(array $set = []) : array {
+		$o = new self();
+		return $o->getI($set);
+	}
+	
+	public function getI(array $set) : array { 
+		$q = [];
+		if ($set) $q = ['html_url' => ['$in' => $set]];
+		$a = $this->rcoll->find($q);	
+		if (!$a) return []; 
+		else return $a; 
+
+	}
 	
     public function __construct(string $act = '')  {
 		parent::__construct(self::dbname);
@@ -67,4 +81,4 @@ class GitGetAct extends dao_generic_3 {
 	
 }
 
-if (didCLICallMe(__FILE__)) new GitGetAct();
+if (didCLICallMe(__FILE__)) new GitGet();
